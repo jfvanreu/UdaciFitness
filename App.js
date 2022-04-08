@@ -1,105 +1,103 @@
-import 'react-native-gesture-handler'
-import * as React from 'react'
-import { View, StatusBar, Platform } from 'react-native'
-import AddEntry from './components/AddEntry.js'
+import React, { useEffect } from 'react'
+import { StyleSheet, Text, View, Platform } from 'react-native'
+import AddEntry from './components/AddEntry'
 import { createStore } from 'redux'
-import { Provider } from 'react-redux'
-import reducer from './reducers'
-import TabNav from './components/TabNav'
-import Constants from "expo-constants"
-import { purple, white } from './utils/colors'
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { Provider, useDispatch } from 'react-redux'
+import entries from './reducers'
 import History from './components/History'
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { purple, white, gray } from './utils/colors'
 import { FontAwesome, Ionicons } from '@expo/vector-icons'
+import { Constants } from 'expo-constants'
+import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { StatusBar } from 'expo-status-bar'
 import EntryDetail from './components/EntryDetail'
 import Live from './components/Live'
-import { setLocalNotification } from './utils/helpers'
-import { createStackNavigator } from '@react-navigation/stack';
+import { setLocalNotification, clearCalendar } from './utils/helpers'
+import { CALENDAR_STORAGE_KEY } from './utils/_calendar'
 
+const currentHeight = getStatusBarHeight()
 
-//create custom statusbar
-function UdaciStatusBar ({ backgroundColor, ...props }) {
-    return (
-            <View style={{ backgroundColor, height: Constants.statusBarHeight }}>
-            <StatusBar translucent backgroundColor={backgroundColor} {...props} />
-            </View>)
-}
-            
-const RouteConfigs = {
-  History:{
-    name: "History",
-    component: History,
-    options: {tabBarIcon: ({tintColor}) => <Ionicons name='ios-bookmarks' size={30} color={tintColor} />, title: 'History'}
-  },
-  AddEntry:{
-    component: AddEntry,
-    name: "AddEntry",
-    options: {tabBarIcon: ({tintColor}) => <FontAwesome name='plus-square' size={30} color={tintColor} />, title: 'Add Entry'}
-  },
-  Live:{
-    component: Live,
-    name: "Live",
-    options: {tabBarIcon: ({tintColor}) => <Ionicons name='ios-speedometer' size={30} color={tintColor} />, title: 'Live'}
-  },
-  
+function MyStatusBar({backgroundColor, ...props}) {
+  return (
+      <View style={{backgroundColor, height: currentHeight}}>
+        <StatusBar backgroundColor={backgroundColor} {...props}/>
+      </View>)
 }
 
-const TabNavigatorConfig = {
-  navigationOptions: {
-    header: null
-  },
-  tabBarOptions: {
-    activeTintColor: Platform.OS === "ios" ? purple : white,
-    style: {
-      height: 100,
-      backgroundColor: Platform.OS === "ios" ? white : purple,
-      shadowColor: "rgba(0, 0, 0, 0.24)",
-      shadowOffset: {
-        width: 0,
-        height: 3
-      },
-      shadowRadius: 6,
-      shadowOpacity: 1
-    }
-  }
+const Tabs = createBottomTabNavigator();
+
+function MyTabs() {
+  return (
+    <Tabs.Navigator screenOptions={{
+      tabBarActiveTintColor: Platform.OS === 'ios' ? purple : white,
+      style: {
+        height: 56,
+        backgroundColor: Platform.OS === 'ios' ? white: purple,
+        shadowColor: 'rgba(0,0,0,0.24)',
+        shadowOffset: {
+          width: 0,
+          height: 3,
+        },
+        shadowRadius: 6,
+        shadowOpacity: 1
+      }
+    }}>
+      <Tabs.Screen 
+          name="History" 
+          component={History} 
+          options={{
+                tabBarLabel: 'History', 
+                tabBarIcon: ({focused, color}) => <Ionicons name='ios-bookmarks' size={30} color={focused ? purple : gray} />,
+                headerShown: false }} //hide tab header
+      />
+      <Tabs.Screen 
+          name="Add Entry" 
+          component={AddEntry}
+          options={{
+            tabBarLabel: 'Add Entry',
+            tabBarIcon: ({focused, color}) => <FontAwesome name='plus-square' size={30} color={focused ? purple: gray} />,
+            headerShown: false }} //hide tab header
+      />
+      <Tabs.Screen 
+          name="Live" 
+          component={Live} 
+          options={{
+                tabBarLabel: 'Live', 
+                tabBarIcon: ({focused, color}) => <Ionicons name='ios-speedometer' size={30} color={focused ? purple : gray} />,
+                headerShown: false }} //hide tab header
+      />
+    </Tabs.Navigator>
+  );
 }
 
-const Tab = createBottomTabNavigator()
-      
-// create Home component which includes our Tab with 2 sub-components
-function Home() {
-return (
-      <Tab.Navigator {...TabNavigatorConfig}>
-          <Tab.Screen {...RouteConfigs['History']} />
-          <Tab.Screen {...RouteConfigs['AddEntry']} />
-          <Tab.Screen {...RouteConfigs['Live']} />
-      </Tab.Navigator>
-  )
-}
+const Stack = createNativeStackNavigator();
 
-//create Stack navigator
-const Stack = createStackNavigator()
+export default function App() {
 
-export default class App extends React.Component {
-  
-  componentDidMount() {
-        setLocalNotification()
-    }
-    
-  render() {
-    return (
-      <Provider store={createStore(reducer)}>
-        <View style={{ flex: 1}}>
-            <UdaciStatusBar backgroundColor={purple} barStyle='light-content' />
-            <NavigationContainer>
-              <Stack.Navigator>
-                <Stack.Screen name="Home" component={Home} />
-                <Stack.Screen name="Detail" component={EntryDetail} />
-              </Stack.Navigator>
-            </NavigationContainer>
-        </View>
-      </Provider>
-    )
-  }
+  // set notification environment
+  useEffect(() => {
+    setLocalNotification()
+  }, [])
+
+  //clear existing calendar (needed when I changed the calendar data format)
+  /*useEffect(() => {
+    console.log(CALENDAR_STORAGE_KEY)
+    clearCalendar(CALENDAR_STORAGE_KEY)
+  }, [])*/
+
+  return (
+    <Provider store={createStore(entries)}>
+      <NavigationContainer>
+        <MyStatusBar backgroundColor={purple} style='light'/>
+        <Stack.Navigator initialRouteName="Home" 
+              screenOptions={{headerTintColor: white, headerStyle: { backgroundColor: purple }}}>
+          <Stack.Screen name="Home" component={MyTabs} />
+          <Stack.Screen name="Entry Detail" component={EntryDetail} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
+    );
 }

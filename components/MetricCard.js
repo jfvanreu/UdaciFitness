@@ -6,7 +6,7 @@ import { gray } from '../utils/colors'
 
 export default function MetricCard ({ metrics, date }) {
 
-    return (
+  return (
     <View>
       {{date} && <DateHeader date={date} />}
       {Object.keys(metrics).map((metric) => {

@@ -1,96 +1,88 @@
-import React, { Component, Fragment } from 'react'
+import React, { useState, Fragment, useEffect, useRef } from 'react'
 import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, Animated } from 'react-native'
 import { Foundation } from '@expo/vector-icons'
 import { purple, white } from '../utils/colors'
-import * as Location from 'expo-location'
 import { calculateDirection } from '../utils/helpers'
-import * as Permissions from 'expo-permissions'
+import * as Location from 'expo-location';
 
-export default class Live extends Component {
-  state = {
-    coords: 1,
-    status: "granted",
-    direction: '',
-    bounceValue: new Animated.Value(1),
-  }
+export default function Live() {
   
-  componentDidMount() {
-    Permissions.getAsync(Permissions.LOCATION)
-    .then(({ status }) => {
+  // define state variables
+  const [coords, setCoords] = useState(null)
+  const [locationStatus, setLocationStatus] = useState(null)
+  const [direction, setDirection] = useState('')
+  const bounceValue = useRef(new Animated.Value(1)).current;
+  
+  // get permissions from the user
+  useEffect(() => {
+      Location.requestForegroundPermissionsAsync()
+      .then(({status})=> {
         if (status === 'granted') {
-            return this.setLocation()
+          return setLocation()
         }
-        
-        this.setState(() => ({status}))
-    })
-    .catch((error) => {
-        console.warn('Error getting Location permission:', error)
-        this.setState(() => ({status: 'undetermined' }))
-    })
-    }
-    
-    askPermission = () => {
-        Permissions.askAsync(Permissions.LOCATION)
-        .then(({ status }) => {
-            if (status === 'granted') {
-                return this.setLocation()
-            }
-            
-            this.setState(() => ({status}))
-        })
-        .catch((error) => console.warn('error asking Location permission: ', error))
-  }
-    
-  setLocation = () => {
-      Location.watchPositionAsync({
-        enableHighAccuracy: true,
-        timeInterval: 1,
-        distanceInterval: 1,
-      }, ({ coords }) => {
-          const newDirection = calculateDirection(coords.heading)
-          const { direction, bounceValue } = this.state
-          
-          console.log(newDirection)
-          
-          if (newDirection !== direction) {
-            Animated.sequence([
-              Animated.timing(bounceValue, { duration: 200, toValue: 1.04}),
-              Animated.spring(bounceValue, { toValue: 1, friction: 4})
-            ]).start()
-          }
-          
-          this.setState(() => ({
-            coords,
-            status: 'granted',
-            direction: newDirection,
-          }))
+        setLocationStatus(status)
       })
-    }
-    
- render() {
-    const { status, coords, direction, bounceValue } = this.state
-     
-    console.log('state is', this.state)
-    if (status === null) {
+      .catch((error) => {
+        console.warn('Error getting Location permission:', error)
+        setLocationStatus('undetermined')
+      })
+    },[])
+
+  // create animation when direction changes  
+  useEffect(() => {
+      // sequence of animations
+      Animated.sequence([ 
+        Animated.timing(bounceValue, {duration: 200, toValue: 1.04, useNativeDriver: true}),
+        Animated.spring(bounceValue, {toValue: 1, friction:4, useNativeDriver: true})
+      ]).start()
+    }, [direction])
+  
+  const askPermission = () => {
+      Location.getCurrentPositionAsync({})
+      .then(({status}) => {
+        if (status === 'granted') {
+          return setLocation()
+        }
+        setLocationStatus(status)
+      })
+      .catch((error) => {
+        console.warn('Error asking for location permissions:', error)
+      })
+  }
+
+  const setLocation = () => {
+    Location.watchPositionAsync({
+      enableHighAccuracy: true,
+      timeInterval: 1,
+      distanceInterval:1,
+    }, ({coords}) => {
+      const newDirection = calculateDirection(coords.heading)
+      setCoords(coords)
+      setLocationStatus('granted')
+      setDirection(newDirection)
+    })
+  }
+
+  if (locationStatus === null) {
       return <ActivityIndicator style={{marginTop: 30}}/>
     }
 
-    if (status === 'denied') {
+    if (locationStatus === 'denied') {
       return (
-              <Fragment>
+              <View style={styles.center}>
                 <Foundation name='alert' size={50} />
                 <Text>You denied your location. You can fix this by visiting your settings and enabling location services for this app.</Text>
-              </Fragment>
+              </View>
       )
     }
 
-    if (status === 'undetermined') {
+    if (locationStatus === 'undetermined') {
       return (
-        <View>
+        <View style={styles.center}>
               <Foundation name='alert' size={50} />
               <Text>You need to enable location services for this app</Text>
-              <TouchableOpacity onPress={this.askPermission} style={styles.button}>
-                <Text style={styles.buttonText} />
+              <TouchableOpacity onPress={askPermission} style={styles.button}>
+                <Text style={styles.buttonText}>Enable</Text>
               </TouchableOpacity>
         </View>
       )
@@ -122,7 +114,6 @@ export default class Live extends Component {
         </Fragment>
     )
   }
-}
 
 const styles = StyleSheet.create({
     container: {
@@ -181,12 +172,4 @@ const styles = StyleSheet.create({
           marginTop: 5,
     },
 })
- /*
-  <View style={styles.directionContainer}>
-      <Text style={styles.header}>You're heading</Text>
-      <Animated.Text
-        style={[styles.direction, {transform: [{scale: bounceValue}]}]}>
-          {direction}
-      </Animated.Text>
-  </View>
-  */
+

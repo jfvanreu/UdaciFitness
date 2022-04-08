@@ -1,36 +1,41 @@
 {
-  "main": "node_modules/expo/AppEntry.js",
+  "name": "udacitri",
+  "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "eject": "expo eject"
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-community/masked-view": "^0.1.6",
-    "@react-navigation/bottom-tabs": "^5.5.2",
-    "@react-navigation/native": "^5.5.1",
-    "@react-navigation/stack": "^5.5.1",
-    "expo": "~37.0.3",
-    "expo-permissions": "~8.1.0",
-    "react": "~16.9.0",
-    "react-dom": "~16.9.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-37.0.1.tar.gz",
-    "react-native-gesture-handler": "^1.6.1",
-    "react-native-reanimated": "^1.7.1",
-    "react-native-safe-area-context": "^0.7.3",
-    "react-native-screens": "^2.2.0",
-    "react-native-web": "~0.11.7",
-    "react-navigation": "^3.13.0",
-    "react-redux": "^7.2.0",
-    "redux": "^4.0.5",
-    "udacifitness-calendar": "github:ftrevo/react-native-calendars#master",
-    "udacifitness-calendar-fix": "^10.1.0"
+    "@react-native-async-storage/async-storage": "~1.15.0",
+    "@react-native-community/slider": "4.1.12",
+    "@react-navigation/bottom-tabs": "^6.3.1",
+    "@react-navigation/material-top-tabs": "^6.2.1",
+    "@react-navigation/native": "^6.0.10",
+    "@react-navigation/native-stack": "^6.6.1",
+    "expo": "~44.0.2",
+    "expo-app-loading": "~1.3.0",
+    "expo-constants": "^13.0.2",
+    "expo-location": "^14.0.2",
+    "expo-notifications": "^0.14.1",
+    "expo-permissions": "^13.1.1",
+    "expo-splash-screen": "~0.14.1",
+    "expo-status-bar": "~1.2.0",
+    "react": "17.0.1",
+    "react-dom": "17.0.1",
+    "react-native": "0.64.3",
+    "react-native-calendars": "^1.300.0",
+    "react-native-safe-area-context": "3.3.2",
+    "react-native-screens": "~3.10.1",
+    "react-native-status-bar-height": "^2.6.0",
+    "react-native-web": "0.17.1",
+    "react-redux": "^7.2.6",
+    "redux": "^4.1.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.6",
-    "babel-preset-expo": "~8.1.0"
+    "@babel/core": "^7.12.9"
   },
   "private": true
 }

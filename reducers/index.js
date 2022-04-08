@@ -1,18 +1,17 @@
-//note that we don't need to indicate actions/index. It picks it up by default.
-import { RECEIVE_ENTRIES, ADD_ENTRY } from '../actions'
+import { ADD_ENTRY, RECEIVE_ENTRIES} from '../actions'
 
-function entries (state = {}, action) {
+// we define our reducers which take a state and an action as arguments and return a state
+function entries(state={}, action) {
     switch (action.type) {
         case RECEIVE_ENTRIES:
             return {
-                ...state,
-                ...action.entries,
+                    ...state,
+                    ...action.entries,
             }
         case ADD_ENTRY:
-            return {
-                ...state,
-                ...action.entry,
-            }
+            return { ...state,
+                     ...action.entry,
+                    }    
         default:
             return state
     }
